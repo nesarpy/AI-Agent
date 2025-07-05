@@ -1,6 +1,7 @@
 """
 TODO:
 - Add google tasks integration
+- Add file opening feature
 """
 
 import requests
@@ -43,7 +44,11 @@ class VoiceControlAgent:
             "Volume": self.volume_control,
             "Screenshot": self.take_screenshot,
             "TodoList": self.open_todo_list,
-            "Website": self.open_website
+            "Website": self.open_website,
+            "Shutdown": self.shutdown_system,
+            "Restart": self.restart_system,
+            "Sleep": self.sleep_system,
+            "Hibernate": self.hibernate_system
         }
     
     def listen_for_voice(self) -> str:
@@ -159,7 +164,7 @@ class VoiceControlAgent:
                 pyautogui.press('enter')
                 
                 # Wait for page to load and click play button
-                time.sleep(7)
+                time.sleep(10)
                 pyautogui.click(PLAY_BUTTON_COORDS[0], PLAY_BUTTON_COORDS[1])
                 print("Play button clicked!")
                 
@@ -227,10 +232,12 @@ class VoiceControlAgent:
         """Control system volume"""
         try:
             if "up" in action.lower():
-                pyautogui.press('volumeup')
+                for i in range(10):
+                    pyautogui.press('volumeup')
                 print("Volume increased")
             elif "down" in action.lower():
-                pyautogui.press('volumedown')
+                for i in range(10):
+                    pyautogui.press('volumedown')
                 print("Volume decreased")
             elif "mute" in action.lower():
                 pyautogui.press('volumemute')
@@ -272,6 +279,50 @@ class VoiceControlAgent:
             print(f"Opening website: {website_url}")
         except Exception as e:
             print(f"Error opening website: {e}")
+    
+    def shutdown_system(self, action: str):
+        """Shutdown the system"""
+        try:
+            if "now" in action.lower():
+                os.system("shutdown /s /t 0")
+                print("System shutting down")
+            else:
+                print("Shutdown command not recognized")
+        except Exception as e:
+            print(f"Error shutting down system: {e}")
+    
+    def restart_system(self, action: str):
+        """Restart the system"""
+        try:
+            if "now" in action.lower():
+                os.system("shutdown /r /t 0")
+                print("System restarting")
+            else:
+                print("Restart command not recognized")
+        except Exception as e:
+            print(f"Error restarting system: {e}")
+    
+    def sleep_system(self, action: str):
+        """Put the system to sleep"""
+        try:
+            if "now" in action.lower():
+                os.system("rundll32.exe powrprof.dll,SetSuspendState 0,1,0")
+                print("System going to sleep")
+            else:
+                print("Sleep command not recognized")
+        except Exception as e:
+            print(f"Error putting system to sleep: {e}")
+    
+    def hibernate_system(self, action: str):
+        """Hibernate the system"""
+        try:
+            if "now" in action.lower():
+                os.system("rundll32.exe powrprof.dll,SetSuspendState Sleep")
+                print("System hibernating")
+            else:
+                print("Hibernate command not recognized")
+        except Exception as e:
+            print(f"Error hibernating system: {e}")
     
     def run(self):
         """Main loop for the voice control agent"""
