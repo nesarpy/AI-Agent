@@ -1,0 +1,6 @@
+requests==2.31.0
+python-dotenv==1.0.0
+SpeechRecognition==3.10.0
+PyAudio==0.2.11
+pyautogui==0.9.54
+Pillow==10.0.1 
