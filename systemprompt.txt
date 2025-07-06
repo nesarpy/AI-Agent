@@ -87,10 +87,17 @@ Common Websites:
 - netflix.com - Netflix
 - twitch.tv - Twitch
 - linkedin.com - LinkedIn
+- chatgpt.com - ChatGPT
 
 Current spotify parameters(RESPOND WITH THESE EXACT ONES):
 - mac de marco
 - kanye west
+- the smiths
+- playlist_1
+- playlist_2
+- jayz
+- laufey
+- tyler the creator
 
 Example responses:
 {"command": "Spotify", "parameters": "mac de marco"}

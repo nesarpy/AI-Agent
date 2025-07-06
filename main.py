@@ -20,13 +20,19 @@ import re
 # Load environment variables
 dotenv.load_dotenv()
 api_key = os.getenv("OPENROUTER_API_KEY")
-#add these to the env
+
+#playlist urls
 macdemarco = os.getenv("MACD")
 ye = os.getenv("YE")
+smiths = os.getenv("SMITHS")
+playlist1 = os.getenv("PLAYLIST1")
+playlist2 = os.getenv("PLAYLIST2")
+laufey = os.getenv("LAUFEY")
+jayz = os.getenv("JAYZ")
+tyler = os.getenv("TYLER")
 
-# Simple configuration - edit these as needed
 PLAY_BUTTON_COORDS = (431, 543)
-SECOND_CLICK_COORDS = (426, 599)  # Second click position (for play button)
+SECOND_CLICK_COORDS = (426, 599)
 
 class VoiceControlAgent:
     def __init__(self):
@@ -59,18 +65,13 @@ class VoiceControlAgent:
         """Listen for voice input and convert to text"""
         try:
             with self.microphone as source:
-                print("Listening... Speak now!")
                 self.recognizer.adjust_for_ambient_noise(source, duration=0.5)
-                audio = self.recognizer.listen(source, timeout=5, phrase_time_limit=10)
+                audio = self.recognizer.listen(source)
                 
-            print("Processing speech...")
             text = self.recognizer.recognize_google(audio)
             print(f"You said: {text}")
             return text
             
-        except sr.WaitTimeoutError:
-            print("No speech detected within timeout")
-            return ""
         except sr.UnknownValueError:
             print("Could not understand audio")
             return ""
@@ -148,15 +149,21 @@ class VoiceControlAgent:
         """Open Spotify and play the specified playlist/artist"""
         try:
             # Direct playlist URLs for specific artists
-            artist_playlists = {
+            playlists = {
                 "mac de marco": macdemarco,
-                "kanye west": ye
+                "kanye west": ye,
+                "the smiths": smiths,
+                "playlist_1": playlist1,
+                "playlist_2": playlist2,
+                "jayz": jayz,
+                "laufey": laufey,
+                "tyler the creator": tyler
             }
             
             # Check if it's a specific artist with direct playlist
             playlist_lower = playlist.lower()
-            if playlist_lower in artist_playlists:
-                search_url = artist_playlists[playlist_lower]
+            if playlist_lower in playlists:
+                search_url = playlists[playlist_lower]
                 print(f"Opening direct playlist for: {playlist}")
                 
                 # Open browser and navigate to URL
