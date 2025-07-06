@@ -270,8 +270,7 @@ class VoiceControlAgent:
     def set_volume_to_level(self, target_level: int):
         """Set volume to a specific percentage level"""
         try:
-            # First, set volume to 0 to get a baseline
-            for i in range(50):  # Press volume down many times to ensure we start at 0
+            for i in range(50):  # start volume at 0
                 pyautogui.press('volumedown')
             
             presses_needed = int(target_level / 2)

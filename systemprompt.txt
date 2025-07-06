@@ -30,6 +30,11 @@ Basic Applications:
 - regedit - Registry Editor
 - cmd - Command Prompt
 - powershell - PowerShell
+- ms-clock: - Clock app
+- ms-clock:worldclock - World Clock
+- ms-clock:alarm - Alarms
+- ms-clock:timer - Timer
+- ms-clock:stopwatch - Stopwatch
 
 Web Browsers:
 - chrome - Google Chrome
@@ -75,6 +80,7 @@ Common Websites:
 - instagram.com - Instagram
 - reddit.com - Reddit
 - github.com - GitHub
+- leetcode.com - LeetCode
 - stackoverflow.com - Stack Overflow
 - wikipedia.org - Wikipedia
 - amazon.com - Amazon
