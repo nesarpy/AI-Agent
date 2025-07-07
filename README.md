@@ -5,7 +5,7 @@ A powerful voice-controlled AI assistant that uses natural language processing t
 ## 🎯 Features
 
 - **Voice Recognition**: Listen to voice commands using your microphone
-- **AI Processing**: Uses DeepSeek AI via OpenRouter to understand natural language
+- **AI Processing**: Uses OpenRouter to send a prompt to an AI to understand natural language
 - **JSON Response Format**: AI responds with structured JSON containing command and parameters
 - **Computer Control**: Execute various actions based on voice commands
 - **Spotify Integration**: Open and play music/playlists automatically
@@ -140,7 +140,7 @@ The agent will start listening for voice commands. Say "exit" to quit.
 ## 🔧 How It Works
 
 1. **Voice Input**: The agent listens to your voice using your microphone
-2. **AI Processing**: Sends the voice command to DeepSeek AI via OpenRouter
+2. **AI Processing**: Sends the voice command to AI via OpenRouter
 3. **JSON Response**: AI responds with structured JSON like `{"command": "Spotify", "parameters": "mac de marco"}`
 4. **Command Execution**: The agent parses the JSON and executes the appropriate function
 

@@ -1,7 +1,6 @@
 """
 TODO:
 - Add google tasks integration
-- Add file opening feature
 """
 
 import requests
@@ -91,10 +90,11 @@ class VoiceControlAgent:
         data = {
             "model": "deepseek/deepseek-chat",
             "messages": [
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": f"Voice command: {voice_command}"}
-            ]
+            {"role":"system","content": system_prompt},
+            {"role":"user","content": f"Voice command: {voice_command}"}
+        ]
         }
+
         
         try:
             response = requests.post(
