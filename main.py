@@ -1,6 +1,8 @@
 """
 TODO:
-- Add google tasks integration
+- add google tasks integration
+- ollama is WAYYYYYY too slow, fix that
+- update readme.md for local ollama model
 """
 
 import requests
@@ -18,9 +20,7 @@ import re
 
 # Load environment variables
 dotenv.load_dotenv()
-api_key = os.getenv("OPENROUTER_API_KEY")
-
-#playlist urls
+# playlist urls
 macdemarco = os.getenv("MACD")
 ye = os.getenv("YE")
 smiths = os.getenv("SMITHS")
@@ -38,8 +38,6 @@ class VoiceControlAgent:
         self.recognizer = sr.Recognizer()
         self.microphone = sr.Microphone()
         self.headers = {
-            "Authorization": f"Bearer {api_key}",
-            "HTTP-Referer": "http://localhost",
             "Content-Type": "application/json"
         }
         
@@ -79,7 +77,7 @@ class VoiceControlAgent:
             return ""
     
     def send_to_ai(self, voice_command: str) -> dict:
-        """Send voice command to AI and get structured response"""
+        """Send voice command to local Ollama and get structured response"""
         try:
             # Read system prompt from file
             with open('systemprompt.txt', 'r', encoding='utf-8') as f:
@@ -88,44 +86,40 @@ class VoiceControlAgent:
             print("systemprompt.txt not found")
 
         data = {
-            "model": "deepseek/deepseek-chat",
+            "model": "gemma3:latest",
             "messages": [
-            {"role":"system","content": system_prompt},
-            {"role":"user","content": f"Voice command: {voice_command}"}
-        ]
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": f"Voice command: {voice_command}"}
+            ]
         }
 
-        
         try:
             response = requests.post(
-                "https://openrouter.ai/api/v1/chat/completions", 
-                headers=self.headers, 
+                "http://localhost:11434/api/chat",
+                headers={"Content-Type": "application/json"},
                 json=data,
-                timeout=30
+                timeout=60
             )
             response.raise_for_status()
-            
             ai_response = response.json()
-            content = ai_response['choices'][0]['message']['content']
-            
+            content = ai_response['message']['content']
+
             # Parse JSON response
             try:
-                # Clean up the response - remove markdown code blocks if present
                 content = content.strip()
                 if content.startswith('```json'):
-                    content = content[7:]  # Remove ```json
+                    content = content[7:]
                 if content.startswith('```'):
-                    content = content[3:]   # Remove ```
+                    content = content[3:]
                 if content.endswith('```'):
-                    content = content[:-3]  # Remove trailing ```
-                
+                    content = content[:-3]
                 content = content.strip()
                 parsed_response = json.loads(content)
                 return parsed_response
             except json.JSONDecodeError:
                 print(f"Invalid JSON response from AI: {content}")
                 return {"command": "Error", "parameters": "Invalid response format"}
-                
+
         except requests.RequestException as e:
             print(f"API request failed: {e}")
             return {"command": "Error", "parameters": "API request failed"}

@@ -78,12 +78,9 @@ pipwin install pyaudio
 
 Create a `.env` file in the project root:
 ```
-OPENROUTER_API_KEY=your_openrouter_api_key_here
 MACD=playlist url
 YE=playlist url
 ```
-
-Get your API key from [OpenRouter](https://openrouter.ai/)
 
 ### 3. Configure Settings
 
