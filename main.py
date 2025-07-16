@@ -1,10 +1,3 @@
-"""
-TODO:
-- add google tasks integration
-- ollama is WAYYYYYY too slow, fix that
-- update readme.md for local ollama model
-"""
-
 import requests
 import dotenv
 import os
@@ -17,7 +10,6 @@ import subprocess
 import glob
 from pathlib import Path
 import re
-import findplaybutton
 
 # Load environment variables
 dotenv.load_dotenv()
@@ -47,12 +39,36 @@ def click(location):
     pyautogui.mouseUp(*location)
 
 def spotifyWeb(url):
+    """Opens spotify web"""
     webbrowser.open("https://google.com")
     time.sleep(2)
     pyautogui.hotkey("ctrl", "l")
     time.sleep(0.1)
     pyautogui.write(url)
     pyautogui.press("enter")
+
+import pyautogui
+
+def locateButton():
+    """Locates playbutton on screen"""
+    # add more reference images if you want
+    reference_images = [
+        "imgrec/ref1.png",
+        "imgrec/ref2.png",
+        "imgrec/ref3.png"
+    ]
+
+    location = None
+
+    for image in reference_images:
+        location = pyautogui.locateOnScreen(image, confidence=0.85)
+        if location:
+            x,y = pyautogui.center(location)
+            print(f"Found playbutton using {image}")
+            return x, y
+    
+    # if no image is matched, return None
+    return location
 
 class VoiceControlAgent:
     def __init__(self, local=False):
@@ -219,7 +235,7 @@ class VoiceControlAgent:
                 # Wait for page to load and click play button
                 time.sleep(10)
                 print("Finding playbutton")
-                location = findplaybutton.locateButton()
+                location = locateButton()
                 if location != None:
                     click(location)
                 else:
@@ -240,7 +256,7 @@ class VoiceControlAgent:
                 click(PLAY_BUTTON_COORDS)
                 print("First click - selecting search result")
                 time.sleep(2)  # Wait a bit between clicks
-                location = findplaybutton.locateButton()
+                location = locateButton()
                 if location != None:
                     click(location)
                 else:
