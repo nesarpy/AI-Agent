@@ -1,3 +1,9 @@
+"""
+TODO:
+ - Transfer all utility functions to utility.py
+ - Create logger instead of using print() so much
+"""
+
 import requests
 import dotenv
 import os
@@ -15,15 +21,16 @@ import re
 dotenv.load_dotenv()
 OPENROUTER_API = os.getenv("OPENROUTER_API_KEY")
 
-# playlist urls
-macdemarco = os.getenv("MACD")
-ye = os.getenv("YE")
-smiths = os.getenv("SMITHS")
-playlist1 = os.getenv("PLAYLIST1")
-playlist2 = os.getenv("PLAYLIST2")
-laufey = os.getenv("LAUFEY")
-jayz = os.getenv("JAYZ")
-tyler = os.getenv("TYLER")
+PLAYLISTS = {
+    "mac de marco": os.getenv("MACD"),
+    "kanye west": os.getenv("YE"),
+    "the smiths": os.getenv("SMITHS"),
+    "playlist_1": os.getenv("PLAYLIST1"),
+    "playlist_2": os.getenv("PLAYLIST2"),
+    "jayz": os.getenv("JAYZ"),
+    "laufey": os.getenv("LAUFEY"),
+    "tyler the creator": os.getenv("TYLER")
+}
 
 PLAY_BUTTON_COORDS = (431, 543)
 SECOND_CLICK_COORDS = (426, 599)
@@ -47,8 +54,6 @@ def spotifyWeb(url):
     pyautogui.write(url)
     pyautogui.press("enter")
 
-import pyautogui
-
 def locateButton():
     """Locates playbutton on screen"""
     # add more reference images if you want
@@ -69,6 +74,15 @@ def locateButton():
     
     # if no image is matched, return None
     return location
+
+def extract_json(text):
+    match = re.search(r'```json(.*?)```', text, re.DOTALL)
+    if match:
+        return match.group(1).strip()
+    match = re.search(r'```(.*?)```', text, re.DOTALL)
+    if match:
+        return match.group(1).strip()
+    return text.strip()
 
 class VoiceControlAgent:
     def __init__(self, local=False):
@@ -132,21 +146,17 @@ class VoiceControlAgent:
             print("systemprompt.txt not found")
 
         if self.local:
-            data = {
-                "model": "gemma3:latest",
-                "messages": [
-                    {"role": "system", "content": system_prompt},
-                    {"role": "user", "content": f"Voice command: {voice_command}"}
-                ]
-            }
+            model = "gemma3:latest"
         else:
-            data = {
-                "model": "tngtech/deepseek-r1t2-chimera:free",
-                "messages": [
-                    {"role": "system", "content": system_prompt},
-                    {"role": "user", "content": f"Voice command: {voice_command}"}
-                ]
-            }
+            model = "tngtech/deepseek-r1t2-chimera:free",
+        
+        data = {
+            "model": model,
+            "messages": [
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": f"Voice command: {voice_command}"}
+            ]
+        }
 
         try:
 
@@ -176,14 +186,7 @@ class VoiceControlAgent:
 
             # Parse JSON response
             try:
-                content = content.strip()
-                if content.startswith('```json'):
-                    content = content[7:]
-                if content.startswith('```'):
-                    content = content[3:]
-                if content.endswith('```'):
-                    content = content[:-3]
-                content = content.strip()
+                content = extract_json(content)
                 parsed_response = json.loads(content)
                 return parsed_response
             except json.JSONDecodeError:
@@ -212,21 +215,9 @@ class VoiceControlAgent:
     def spotify(self, playlist: str):
         """Open Spotify and play the specified playlist/artist"""
         try:
-            # Direct playlist URLs for specific artists
-            playlists = {
-                "mac de marco": macdemarco,
-                "kanye west": ye,
-                "the smiths": smiths,
-                "playlist_1": playlist1,
-                "playlist_2": playlist2,
-                "jayz": jayz,
-                "laufey": laufey,
-                "tyler the creator": tyler
-            }
-            
             # Check if it's a specific artist with direct playlist
-            if playlist.lower() in playlists:
-                search_url = playlists[playlist.lower()]
+            if playlist.lower() in PLAYLISTS:
+                search_url = PLAYLISTS[playlist.lower()]
                 print(f"Opening direct playlist for: {playlist}")
                 
                 # Open browser and navigate to URL
