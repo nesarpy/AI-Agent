@@ -106,4 +106,6 @@ cython_debug/
 
 # System files
 .DS_Store
-Thumbs.db 
+Thumbs.db
+
+scratchpad.py

@@ -17,9 +17,12 @@ import subprocess
 import glob
 from pathlib import Path
 import re
+import findplaybutton
 
 # Load environment variables
 dotenv.load_dotenv()
+OPENROUTER_API = os.getenv("OPENROUTER_API_KEY")
+
 # playlist urls
 macdemarco = os.getenv("MACD")
 ye = os.getenv("YE")
@@ -33,13 +36,40 @@ tyler = os.getenv("TYLER")
 PLAY_BUTTON_COORDS = (431, 543)
 SECOND_CLICK_COORDS = (426, 599)
 
+def click(location):
+    """Moves mouse button to location then clicks in a more human like way"""
+    pyautogui.moveTo(*location)
+    time.sleep(0.1)
+    print("Mouse down")
+    pyautogui.mouseDown(*location)
+    time.sleep(0.1)
+    print("Mouse up")
+    pyautogui.mouseUp(*location)
+
+def spotifyWeb(url):
+    webbrowser.open("https://google.com")
+    time.sleep(2)
+    pyautogui.hotkey("ctrl", "l")
+    time.sleep(0.1)
+    pyautogui.write(url)
+    pyautogui.press("enter")
+
 class VoiceControlAgent:
-    def __init__(self):
+    def __init__(self, local=False):
+        self.local = local
         self.recognizer = sr.Recognizer()
         self.microphone = sr.Microphone()
-        self.headers = {
-            "Content-Type": "application/json"
-        }
+        if self.local:
+            self.headers = {
+                "Content-Type": "application/json"
+            }
+        else:
+            self.headers = {
+                "Authorization": f"Bearer {OPENROUTER_API}",
+                "Content-Type": "application/json",
+                "HTTP-Referer": "https://slimeydev.github.io/",
+                "X-Title": "AI Computer Agent"
+            }
         
         # Command mappings
         self.command_handlers = {
@@ -85,24 +115,48 @@ class VoiceControlAgent:
         except FileNotFoundError:
             print("systemprompt.txt not found")
 
-        data = {
-            "model": "gemma3:latest",
-            "messages": [
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": f"Voice command: {voice_command}"}
-            ]
-        }
+        if self.local:
+            data = {
+                "model": "gemma3:latest",
+                "messages": [
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": f"Voice command: {voice_command}"}
+                ]
+            }
+        else:
+            data = {
+                "model": "tngtech/deepseek-r1t2-chimera:free",
+                "messages": [
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": f"Voice command: {voice_command}"}
+                ]
+            }
 
         try:
-            response = requests.post(
-                "http://localhost:11434/api/chat",
-                headers={"Content-Type": "application/json"},
-                json=data,
-                timeout=60
-            )
-            response.raise_for_status()
-            ai_response = response.json()
-            content = ai_response['message']['content']
+
+            if self.local:
+                response = requests.post(
+                    "http://localhost:11434/api/chat",
+                    headers={"Content-Type": "application/json"},
+                    json=data,
+                    timeout=120,
+                    stream=True
+                )
+                response.raise_for_status()
+                ai_response = response.json()
+                content = ai_response['message']['content']
+            else:
+                response = requests.post(
+                    url="https://openrouter.ai/api/v1/chat/completions", 
+                    headers=self.headers, 
+                    json=data,
+                    timeout=30
+                )
+
+                response.raise_for_status()
+                ai_response = response.json()
+                content = ai_response['choices'][0]['message']['content']
+
 
             # Parse JSON response
             try:
@@ -155,45 +209,42 @@ class VoiceControlAgent:
             }
             
             # Check if it's a specific artist with direct playlist
-            playlist_lower = playlist.lower()
-            if playlist_lower in playlists:
-                search_url = playlists[playlist_lower]
+            if playlist.lower() in playlists:
+                search_url = playlists[playlist.lower()]
                 print(f"Opening direct playlist for: {playlist}")
                 
                 # Open browser and navigate to URL
-                webbrowser.open("https://www.google.com")
-                time.sleep(2)
-                pyautogui.hotkey('ctrl', 'l')
-                time.sleep(0.5)
-                pyautogui.write(search_url)
-                pyautogui.press('enter')
+                spotifyWeb(search_url)
                 
                 # Wait for page to load and click play button
                 time.sleep(10)
-                pyautogui.click(PLAY_BUTTON_COORDS[0], PLAY_BUTTON_COORDS[1])
+                print("Finding playbutton")
+                location = findplaybutton.locateButton()
+                if location != None:
+                    click(location)
+                else:
+                    click(PLAY_BUTTON_COORDS)
                 print("Play button clicked!")
-                
             else:
                 # Use search for other artists/playlists
                 search_url = f"https://open.spotify.com/search/{playlist.replace(' ', '%20')}"
                 print(f"Searching Spotify for: {playlist}")
                 
                 # Open browser and navigate to URL
-                webbrowser.open("https://www.google.com")  # Open browser first
-                time.sleep(2)  # Wait for browser to open
-                pyautogui.hotkey('ctrl', 'l')  # Select address bar
-                time.sleep(0.5)
-                pyautogui.write(search_url)
-                pyautogui.press('enter')
+                spotifyWeb(search_url)
                 
                 # Wait for page to load
                 time.sleep(7)
                 
                 # For search results, click twice - first to select, then to play
-                pyautogui.click(PLAY_BUTTON_COORDS[0], PLAY_BUTTON_COORDS[1])
+                click(PLAY_BUTTON_COORDS)
                 print("First click - selecting search result")
                 time.sleep(2)  # Wait a bit between clicks
-                pyautogui.click(SECOND_CLICK_COORDS[0], SECOND_CLICK_COORDS[1])
+                location = findplaybutton.locateButton()
+                if location != None:
+                    click(location)
+                else:
+                    click(SECOND_CLICK_COORDS)
                 print("Second click - playing music")
             
         except Exception as e:
@@ -446,8 +497,16 @@ class VoiceControlAgent:
             print("-" * 50)
 
 def main():
-    """Main function to run the voice control agent"""
-    agent = VoiceControlAgent()
+    print("Configure AI")
+    print("Use local gemma3:latest model via ollama - type True")
+    print("Use deepseek via openrouter api - type False")
+    user_input = input()
+    LOCAL = user_input.strip().lower() == "true"
+    if LOCAL:
+        print("Using local gemma3:latest model via ollama.")
+    else:
+        print("Using deepseek via openrouter api")
+    agent = VoiceControlAgent(local=LOCAL)
     agent.run()
 
 if __name__ == "__main__":
