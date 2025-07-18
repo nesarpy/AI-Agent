@@ -109,3 +109,5 @@ cython_debug/
 Thumbs.db
 
 scratchpad.py
+logs.txt
+logs/
