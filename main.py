@@ -147,7 +147,7 @@ class VoiceControlAgent:
         if self.local:
             model = "gemma3:latest"
         else:
-            model = "tngtech/deepseek-r1t2-chimera:free",
+            model = "tngtech/deepseek-r1t2-chimera:free"
         
         data = {
             "model": model,
@@ -164,8 +164,7 @@ class VoiceControlAgent:
                     "http://localhost:11434/api/chat",
                     headers={"Content-Type": "application/json"},
                     json=data,
-                    timeout=120,
-                    stream=True
+                    stream=False
                 )
                 response.raise_for_status()
                 ai_response = response.json()
