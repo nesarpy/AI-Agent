@@ -20,7 +20,7 @@ class Agent:
             self.headers = {
                 "Authorization": f"Bearer {self.openrouter_api}",
                 "Content-Type": "application/json",
-                "HTTP-Referer": "https://slimeydev.github.io/",
+                "HTTP-Referer": "https://nesarpy.github.io/",
                 "X-Title": "AI Computer Agent"
             }
         
@@ -75,7 +75,7 @@ class Agent:
         if self.local:
             model = "gemma3:latest"
         else:
-            model = "tngtech/deepseek-r1t2-chimera:free"
+            model = "deepseek/deepseek-chat-v3-0324:free"
         
         data = {
             "model": model,
