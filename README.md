@@ -78,8 +78,7 @@ pipwin install pyaudio
 
 Create a `.env` file in the project root:
 ```
-MACD=playlist url
-YE=playlist url
+OPENROUTER_API_KEY=your_openrouter_api_key_here
 ```
 
 ### 3. Configure Settings
@@ -120,7 +119,7 @@ The agent will start listening for voice commands. Say "exit" to quit.
 
 1. **Music**: "Open Spotify and play some Mac DeMarco"
    - AI Response: `{"command": "Spotify", "parameters": "mac de marco"}`
-   - Action: Opens browser, navigates to Spotify playlist, clicks play
+   - Action: Opens browser, navigates to Spotify search, clicks play
 
 2. **Website**: "Open YouTube"
    - AI Response: `{"command": "Website", "parameters": "https://www.youtube.com"}`
@@ -143,9 +142,10 @@ The agent will start listening for voice commands. Say "exit" to quit.
 
 ## 🎵 Spotify Integration
 
-### Search Results
-- For other artists/playlists, opens Spotify search
-- Automatically clicks to select and play the first result
+### Search-Based Playback
+- Opens Spotify search for any artist, genre, or playlist name
+- Automatically clicks to select and play the first search result
+- No need to configure preset playlists - works with any music request
 
 ## 🌐 Website Navigation
 
@@ -169,16 +169,8 @@ Uses Windows+R commands to open applications:
 ### Adding New Commands
 
 1. **Edit `systemprompt.txt`** to add new commands
-2. **Add handler** in `main.py` if needed
-3. **Update command mappings** in the VoiceControlAgent class
-
-### Modifying Spotify Playlists
-
-Edit the `.env` file to add new preset playlists:
-```
-MACD=[your mac de marco playlist]
-YE=[your kanye playlist]
-```
+2. **Add handler** in `modules/Agent.py` if needed
+3. **Update command mappings** in the Agent class
 
 ## 📦 Dependencies
 
