@@ -32,12 +32,8 @@ class Agent:
             "Search": web_search,
             "Volume": volume_control,
             "Screenshot": take_screenshot,
-            "TodoList": open_todo_list,
             "Website": open_website,
-            "Shutdown": shutdown_system,
-            "Restart": restart_system,
-            "Sleep": sleep_system,
-            "Hibernate": hibernate_system,
+            "PowerShell": powershell,
             "File": open_file
         }
     
@@ -75,7 +71,7 @@ class Agent:
         if self.local:
             model = "gemma3:latest"
         else:
-            model = "deepseek/deepseek-chat-v3-0324:free"
+            model = "mistralai/mixtral-8x7b-instruct"
         
         data = {
             "model": model,
@@ -196,4 +192,4 @@ class Agent:
             # Execute the command
             self.execute_command(command_data)
             
-            print("-" * 50) 
+            print("-" * 50)

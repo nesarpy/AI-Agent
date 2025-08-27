@@ -6,6 +6,8 @@ import os
 import subprocess
 import glob
 from logger import log
+import keyboard
+import random
 
 # Constants
 PLAY_BUTTON_COORDS = (431, 543)
@@ -163,23 +165,6 @@ def take_screenshot(filename: str = ""):
         log(f"Error taking screenshot: {e}")
         print("Error, check logs")
 
-def open_todo_list(list_name: str):
-    """Open Google Calendar tasks"""
-    try:
-        tasks_url = "https://calendar.google.com/calendar/u/0/r/tasks"
-        
-        # Open URL using Windows+R
-        pyautogui.hotkey('win', 'r')
-        time.sleep(1)
-        pyautogui.write(tasks_url)
-        pyautogui.press('enter')
-        
-        log(f"Opening Google Calendar tasks")
-        
-    except Exception as e:
-        log(f"Error opening todo list: {e}")
-        print("Error, check logs")
-
 def open_website(website_url: str):
     """Open a specific website"""
     try:
@@ -189,60 +174,18 @@ def open_website(website_url: str):
         log(f"Error opening website: {e}")
         print("Error, check logs")
 
-def shutdown_system(action: str):
-    """Shutdown the system"""
+def powershell(action: str):
+    """Run command on command line"""
     try:
         if "now" in action.lower():
-            os.system("shutdown /s /t 0")
-            print("System shutting down")
-            log("Shutting down system")
+            os.system(action)
+            print(f"Executing: {action}")
+            log(f"Executing via powershell: {action}")
         else:
-            print("Shutdown command not recognized")
-            log("Shutdown command not recognized")
+            print(f"'{action}' not possible")
+            log(f"'{action}' command not recognized")
     except Exception as e:
-        log(f"Error shutting down system: {e}")
-        print("Error, check logs")
-
-def restart_system(action: str):
-    """Restart the system"""
-    try:
-        if "now" in action.lower():
-            os.system("shutdown /r /t 0")
-            print("System restarting")
-            log("restarting system")
-        else:
-            print("Restart command not recognized")
-            log("restart command not recognized")
-    except Exception as e:
-        log(f"Error restarting system: {e}")
-        print("Error, check logs")
-
-def sleep_system(action: str):
-    """Put the system to sleep"""
-    try:
-        if "now" in action.lower():
-            os.system("rundll32.exe powrprof.dll,SetSuspendState 0,1,0")
-            print("System going to sleep")
-            log("System going to sleep")
-        else:
-            print("Sleep command not recognized")
-            log("sleep command not recognized")
-    except Exception as e:
-        log(f"Error putting system to sleep: {e}")
-        print("Error, check logs")
-
-def hibernate_system(action: str):
-    """Hibernate the system"""
-    try:
-        if "now" in action.lower():
-            os.system("rundll32.exe powrprof.dll,SetSuspendState Sleep")
-            print("System hibernating")
-            log("Sytem hibernating")
-        else:
-            print("Hibernate command not recognized")
-            log("Hibernate command not recognized")
-    except Exception as e:
-        log(f"Error hibernating system: {e}")
+        log(f"Error executing command: {e}")
         print("Error, check logs")
 
 def open_file(filename: str):
@@ -290,11 +233,7 @@ def open_file(filename: str):
             file_path = found_files[0]
             log(f"Found file: {file_path}")
             
-            # Open the file using the default application
-            if os.name == 'nt':  # Windows
-                os.startfile(file_path)
-            else:  # Linux/Mac
-                subprocess.run(['xdg-open', file_path])
+            os.startfile(file_path)
             
             print(f"Opened file: {os.path.basename(file_path)}")
             log(f"Opened file: {os.path.basename(file_path)}")
@@ -306,3 +245,6 @@ def open_file(filename: str):
     except Exception as e:
         log(f"Error opening file: {e}")
         print("Error, check logs")
+
+def typeKeys(s):
+    keyboard.write(s, random.uniform(0.5, 0))

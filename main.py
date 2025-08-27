@@ -21,7 +21,7 @@ OPENROUTER_API = os.getenv("OPENROUTER_API_KEY")
 def main():
     print("Configure AI")
     print("Use local gemma3:latest model via ollama - type True")
-    print("Use deepseek via openrouter api - type False")
+    print("Use openrouter api - type False")
     user_input = input()
     LOCAL = user_input.strip().lower() == "true"
     log(LOCAL)
@@ -29,8 +29,8 @@ def main():
         print("Using local gemma3:latest model via ollama.")
         log("gemma3:latest via ollama")
     else:
-        print("Using deepseek via openrouter api")
-        log("Deepseek via openrouter api")
+        print("Using openrouter api")
+        log("openrouter api")
     agent = Agent(local=LOCAL, openrouter_api=OPENROUTER_API)
     agent.run()
 
