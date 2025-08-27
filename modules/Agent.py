@@ -32,7 +32,7 @@ class Agent:
             "Search": web_search,
             "Volume": volume_control,
             "Screenshot": take_screenshot,
-            "Website": open_website,
+            "Website": Website,
             "PowerShell": powershell,
             "File": open_file
         }
@@ -51,7 +51,6 @@ class Agent:
             
         except sr.UnknownValueError:
             print("Could not understand audio")
-            log("Could not understand audio")
             return ""
         except sr.RequestError as e:
             print(f"Could not request results; {e}")
@@ -142,22 +141,22 @@ class Agent:
             search_url = f"https://open.spotify.com/search/{playlist.replace(' ', '%20')}"
             print(f"Searching Spotify for: {playlist}")
             log(f"Searching Spotify for: {playlist}")
-            
-            # Open browser and navigate to URL
-            spotifyWeb(search_url)
-            
-            # Wait for page to load
+            Website(search_url)
             time.sleep(7)
             
             # For search results, click twice - first to select, then to play
-            click(PLAY_BUTTON_COORDS)
-            log("First click - selecting search result")
-            time.sleep(2)  # Wait a bit between clicks
-            location = locateButton()
+            location = locate("artistcard")
             if location != None:
                 click(location)
             else:
-                click(SECOND_CLICK_COORDS)
+                log("Artist card not found on screen")
+            log("First click - selecting search result")
+            time.sleep(2)
+            location = locate("playbutton")
+            if location != None:
+                click(location)
+            else:
+                log("Play button not found on screen")
             log("Second click - playing music")
             
         except Exception as e:

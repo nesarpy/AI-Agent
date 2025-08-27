@@ -8,10 +8,19 @@ import glob
 from logger import log
 import keyboard
 import random
+from ctypes import cast, POINTER
+from comtypes import CLSCTX_ALL
+from pycaw.pycaw import AudioUtilities, IAudioEndpointVolume
+import pytesseract
+import pyautogui
+from PIL import Image
 
-# Constants
-PLAY_BUTTON_COORDS = (431, 543)
-SECOND_CLICK_COORDS = (426, 599)
+# Initialize pycaw interface
+devices = AudioUtilities.GetSpeakers()
+interface = devices.Activate(IAudioEndpointVolume._iid_, CLSCTX_ALL, None)
+volume = cast(interface, POINTER(IAudioEndpointVolume))
+
+pytesseract.pytesseract.tesseract_cmd = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
 
 def click(location):
     """Moves mouse button to location then clicks in a more human like way"""
@@ -23,8 +32,8 @@ def click(location):
     log("Mouse up")
     pyautogui.mouseUp(*location)
 
-def spotifyWeb(url):
-    """Opens spotify web"""
+def Website(url):
+    """Opens specified URL in browser"""
     webbrowser.open("https://google.com")
     time.sleep(2)
     pyautogui.hotkey("ctrl", "l")
@@ -32,26 +41,34 @@ def spotifyWeb(url):
     pyautogui.write(url)
     pyautogui.press("enter")
 
-def locateButton():
-    """Locates playbutton on screen"""
-    # add more reference images if you want
-    reference_images = [
-        "imgrec/ref1.png",
-        "imgrec/ref2.png",
-        "imgrec/ref3.png"
-    ]
+def locate(component: str):
+    """Locate component on screen using image recognition"""
 
-    location = None
-
-    for image in reference_images:
-        location = pyautogui.locateOnScreen(image, confidence=0.85)
-        if location:
-            x,y = pyautogui.center(location)
-            log(f"Found playbutton using {image}")
-            return x, y
-    
-    # if no image is matched, return None
-    return location
+    if component == "artistcard":
+        screenshot = pyautogui.screenshot()
+        data = pytesseract.image_to_data(screenshot, output_type=pytesseract.Output.DICT)
+        
+        for i, word in enumerate(data["text"]):
+            if word.strip().lower() == "top":
+                # Check if "result" follows right after
+                if i + 1 < len(data["text"]) and data["text"][i + 1].strip().lower() == "result":
+                    x = data["left"][i]
+                    y = data["top"][i]
+                    
+                    # Offset to approximate artist card location
+                    target_x = x + 100
+                    target_y = y + 200
+                    return target_x, target_y
+        
+        return None
+    elif component == "playbutton":
+        for i in range(1, 4):
+            location = pyautogui.locateOnScreen(f"imgrec/ref{i}.png", confidence=0.8)
+            if location is not None:
+                return pyautogui.center(location)
+        return None
+    else:
+        return None
 
 def extract_json(text):
     """Extract JSON content from text, handling both ```json and ``` code blocks"""
@@ -103,53 +120,48 @@ def web_search(search_term: str):
         print("Error, check logs")
 
 def volume_control(action: str):
-    """Control system volume"""
+    """Control system volume using pycaw"""
     try:
         action_lower = action.lower()
         
         if "up" in action_lower:
-            for i in range(10):
-                pyautogui.press('volumeup')
-            print("Volume increased")
+            current = volume.GetMasterVolumeLevelScalar()
+            new_level = min(current + 0.1, 1.0)
+            volume.SetMasterVolumeLevelScalar(new_level, None)
+            print(f"Volume increased to {int(new_level*100)}%")
+
         elif "down" in action_lower:
-            for i in range(10):
-                pyautogui.press('volumedown')
-            print("Volume decreased")
+            current = volume.GetMasterVolumeLevelScalar()
+            new_level = max(current - 0.1, 0.0)
+            volume.SetMasterVolumeLevelScalar(new_level, None)
+            print(f"Volume decreased to {int(new_level*100)}%")
+
         elif "mute" in action_lower:
-            pyautogui.press('volumemute')
+            volume.SetMute(1, None)
             print("Volume muted")
+
+        elif "unmute" in action_lower:
+            volume.SetMute(0, None)
+            print("Volume unmuted")
+
         elif "volume" in action_lower:
             # Extract number from action (e.g., "volume 50" -> 50)
             numbers = re.findall(r'\d+', action)
             if numbers:
                 target_volume = int(numbers[0])
                 if 0 <= target_volume <= 100:
-                    # Set volume to specific level
-                    set_volume_to_level(target_volume)
+                    volume.SetMasterVolumeLevelScalar(target_volume / 100, None)
                     print(f"Volume set to {target_volume}%")
                 else:
                     print("Volume must be between 0 and 100")
             else:
                 print("Please specify a volume level (0-100)")
+
         else:
-            print("Volume command not recognized. Use: up, down, mute, or volume [0-100]")
-            
+            print("Volume command not recognized. Use: up, down, mute, unmute, or volume [0-100]")
+
     except Exception as e:
         log(f"Error controlling volume: {e}")
-        print("Error, check logs")
-
-def set_volume_to_level(target_level: int):
-    """Set volume to a specific percentage level"""
-    try:
-        for i in range(50):  # start volume at 0
-            pyautogui.press('volumedown')
-        
-        presses_needed = int(target_level / 2)
-        for i in range(presses_needed):
-            pyautogui.press('volumeup')
-            
-    except Exception as e:
-        log(f"Error setting volume level: {e}")
         print("Error, check logs")
 
 def take_screenshot(filename: str = ""):
@@ -163,15 +175,6 @@ def take_screenshot(filename: str = ""):
         log(f"Screenshot saved as {filename}")
     except Exception as e:
         log(f"Error taking screenshot: {e}")
-        print("Error, check logs")
-
-def open_website(website_url: str):
-    """Open a specific website"""
-    try:
-        os.startfile(website_url)
-        log(f"Opening website: {website_url}")
-    except Exception as e:
-        log(f"Error opening website: {e}")
         print("Error, check logs")
 
 def powershell(action: str):
