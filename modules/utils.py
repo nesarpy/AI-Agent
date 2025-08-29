@@ -70,16 +70,6 @@ def locate(component: str):
     else:
         return None
 
-def extract_json(text):
-    """Extract JSON content from text, handling both ```json and ``` code blocks"""
-    match = re.search(r'```json(.*?)```', text, re.DOTALL)
-    if match:
-        return match.group(1).strip()
-    match = re.search(r'```(.*?)```', text, re.DOTALL)
-    if match:
-        return match.group(1).strip()
-    return text.strip()
-
 def open_application(app_command: str):
     """Open specified application using Windows+R command"""
     try:
@@ -248,6 +238,3 @@ def open_file(filename: str):
     except Exception as e:
         log(f"Error opening file: {e}")
         print("Error, check logs")
-
-def typeKeys(s):
-    keyboard.write(s, random.uniform(0.5, 0))

@@ -5,11 +5,13 @@ import time
 import os
 from logger import log
 from modules.utils import *
+import re
 
 class Agent:
-    def __init__(self, local=False, openrouter_api=None):
+    def __init__(self, local=False, openrouter_api=None, input_method="voice"):
         self.local = local
         self.openrouter_api = openrouter_api
+        self.input_method = input_method
         self.recognizer = sr.Recognizer()
         self.microphone = sr.Microphone()
         if self.local:
@@ -37,6 +39,56 @@ class Agent:
             "File": open_file
         }
     
+    def extract_json(self, text):
+        """Extract JSON content from text using 2-pointer method to find outermost curly brackets"""
+        # First try to find code blocks
+        match = re.search(r'```json(.*?)```', text, re.DOTALL)
+        if match:
+            text = match.group(1).strip()
+        else:
+            match = re.search(r'```(.*?)```', text, re.DOTALL)
+            if match:
+                text = match.group(1).strip()
+        
+        # Use 2-pointer method to find outermost curly brackets
+        start = -1
+        end = -1
+        brace_count = 0
+        found_start = False
+        
+        for i, char in enumerate(text):
+            if char == '{':
+                if not found_start:
+                    start = i
+                    found_start = True
+                brace_count += 1
+            elif char == '}':
+                brace_count -= 1
+                if found_start and brace_count == 0:
+                    end = i
+                    break
+        
+        # If we found valid JSON brackets, extract the content
+        if start != -1 and end != -1 and start < end:
+            return text[start:end + 1]
+        
+        # Fallback to original text if no valid JSON found
+        return text.strip()
+    
+    def get_text_input(self) -> str:
+        """Get text input from user"""
+        try:
+            text = input("Type your command: ").strip()
+            if text:
+                print(f"You typed: {text}")
+                log(f"You typed: {text}")
+            return text
+        except KeyboardInterrupt:
+            return ""
+        except Exception as e:
+            log(f"Error getting text input: {e}")
+            return ""
+    
     def listen_for_voice(self) -> str:
         """Listen for voice input and convert to text"""
         try:
@@ -57,8 +109,8 @@ class Agent:
             log(f"Could not request results; {e}")
             return ""
     
-    def send_to_ai(self, voice_command: str) -> dict:
-        """Send voice command to local Ollama and get structured response"""
+    def send_to_ai(self, command: str) -> dict:
+        """Send command to AI and get structured response"""
         try:
             # Read system prompt from file
             with open('systemprompt.txt', 'r', encoding='utf-8') as f:
@@ -76,7 +128,7 @@ class Agent:
             "model": model,
             "messages": [
             {"role": "system", "content": system_prompt},
-            {"role": "user", "content": f"Voice command: {voice_command}"}
+            {"role": "user", "content": f"User command: {command}"}
             ]
         }
 
@@ -107,11 +159,14 @@ class Agent:
 
             # Parse JSON response
             try:
-                content = extract_json(content)
-                parsed_response = json.loads(content)
+                extracted_content = self.extract_json(content)
+                log(f"Extracted content: {extracted_content}")
+                parsed_response = json.loads(extracted_content)
                 return parsed_response
-            except json.JSONDecodeError:
+            except json.JSONDecodeError as e:
                 log(f"Invalid JSON response from AI: {content}")
+                log(f"Extracted content: {extracted_content}")
+                log(f"JSON decode error: {e}")
                 return {"command": "Error", "parameters": "Invalid response format"}
 
         except requests.RequestException as e:
@@ -164,29 +219,37 @@ class Agent:
             print("Error, check logs for more info")
     
     def run(self):
-        """Main loop for the voice control agent"""
-        print("AI Voice Control Agent Started!")
+        """Main loop for the AI agent"""
+        if self.input_method == "voice":
+            print("AI Voice Control Agent Started!")
+            print("Say 'exit' to quit")
+        else:
+            print("AI Text Control Agent Started!")
+            print("Type 'exit' to quit")
+        
         log("="*50)
-        log("Agent started")
-        print("Say 'exit' to quit")
+        log(f"Agent started with {self.input_method} input method")
         print("-"*50)
         
         while True:
-            # Listen for voice command
-            voice_text = self.listen_for_voice()
+            # Get input based on selected method
+            if self.input_method == "voice":
+                input_text = self.listen_for_voice()
+            else:
+                input_text = self.get_text_input()
             
-            if not voice_text:
+            if not input_text:
                 continue
             
             # Check for exit command
-            if "exit" in voice_text.lower() or "quit" in voice_text.lower():
+            if "exit" in input_text.lower() or "quit" in input_text.lower():
                 print("Goodbye!")
                 log("Exited")
                 log("="*50)
                 break
             
             # Send to AI for processing
-            command_data = self.send_to_ai(voice_text)
+            command_data = self.send_to_ai(input_text)
             
             # Execute the command
             self.execute_command(command_data)

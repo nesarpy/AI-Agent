@@ -31,7 +31,18 @@ def main():
     else:
         print("Using openrouter api")
         log("openrouter api")
-    agent = Agent(local=LOCAL, openrouter_api=OPENROUTER_API)
+    
+    # Choose input method
+    print("\nChoose input method:")
+    print("1. Voice Control")
+    print("2. Type Commands")
+    input_choice = input("Enter 1 or 2: ").strip()
+    
+    INPUT_METHOD = "voice" if input_choice == "1" else "text"
+    print(f"Using {INPUT_METHOD} input method")
+    log(f"Input method: {INPUT_METHOD}")
+    
+    agent = Agent(local=LOCAL, openrouter_api=OPENROUTER_API, input_method=INPUT_METHOD)
     agent.run()
 
 if __name__ == "__main__":
