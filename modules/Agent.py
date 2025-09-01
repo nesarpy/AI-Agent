@@ -4,7 +4,7 @@ import json
 import time
 import os
 from logger import log
-from modules.utils import *
+from modules.tools import *
 import re
 
 class Agent:
@@ -28,7 +28,7 @@ class Agent:
         
         # Command mappings - these will call utility functions from utils module
         self.command_handlers = {
-            "Spotify": self.spotify,
+            "Spotify": spotify,
             "Open": open_application,
             "Close": close_application,
             "Search": web_search,
@@ -189,35 +189,7 @@ class Agent:
         print(f"Unknown command: {command}")
         log(f"Unknown command: {command}")
     
-    def spotify(self, playlist: str):
-        """Open Spotify and search for the specified artist/playlist"""
-        try:
-            # Always use search for any artist/playlist
-            search_url = f"https://open.spotify.com/search/{playlist.replace(' ', '%20')}"
-            print(f"Searching Spotify for: {playlist}")
-            log(f"Searching Spotify for: {playlist}")
-            Website(search_url)
-            time.sleep(7)
-            
-            # For search results, click twice - first to select, then to play
-            location = locate("artistcard")
-            if location != None:
-                click(location)
-            else:
-                log("Artist card not found on screen")
-            log("First click - selecting search result")
-            time.sleep(2)
-            location = locate("playbutton")
-            if location != None:
-                click(location)
-            else:
-                log("Play button not found on screen")
-            log("Second click - playing music")
-            
-        except Exception as e:
-            log(f"Error in Spotify function: {e}")
-            print("Error, check logs for more info")
-    
+
     def run(self):
         """Main loop for the AI agent"""
         if self.input_method == "voice":
