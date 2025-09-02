@@ -5,7 +5,7 @@ import re
 import os
 import subprocess
 import glob
-from logger import log
+from logger import logger
 import keyboard
 import random
 from ctypes import cast, POINTER
@@ -14,22 +14,28 @@ from pycaw.pycaw import AudioUtilities, IAudioEndpointVolume
 import pytesseract
 import pyautogui
 from PIL import Image
+import cv2
 
 # Initialize pycaw interface
 devices = AudioUtilities.GetSpeakers()
 interface = devices.Activate(IAudioEndpointVolume._iid_, CLSCTX_ALL, None)
 volume = cast(interface, POINTER(IAudioEndpointVolume))
 
-pytesseract.pytesseract.tesseract_cmd = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
+# Configure Tesseract path from environment, with a sensible default
+tesseract_env_var = os.getenv("TESSERACT_PATH")
+if tesseract_env_var and os.path.exists(tesseract_env_var):
+    pytesseract.pytesseract.tesseract_cmd = tesseract_env_var
+else:
+    pytesseract.pytesseract.tesseract_cmd = r"C:\\Program Files\\Tesseract-OCR\\tesseract.exe"
 
 def click(location):
     """Moves mouse button to location then clicks in a more human like way"""
     pyautogui.moveTo(*location)
     time.sleep(0.1)
-    log("Mouse down")
+    logger.debug("Mouse down")
     pyautogui.mouseDown(*location)
     time.sleep(0.1)
-    log("Mouse up")
+    logger.debug("Mouse up")
     pyautogui.mouseUp(*location)
 
 def Website(url):
@@ -62,8 +68,21 @@ def locate(component: str):
         
         return None
     elif component == "playbutton":
-        for i in range(1, 4):
-            location = pyautogui.locateOnScreen(f"imgrec/ref{i}.png", confidence=0.8)
+        base_dir = os.path.dirname(os.path.abspath(__file__))
+        imgrec_dir = os.path.join(os.path.dirname(base_dir), "imgrec")
+
+        for i in range(1, 5):
+            ref_path = os.path.join(imgrec_dir, f"ref{i}.png")
+            if not os.path.exists(ref_path):
+                continue
+            try:
+                location = pyautogui.locateOnScreen(ref_path, confidence=0.9, grayscale=True)
+            except TypeError:
+                location = pyautogui.locateOnScreen(ref_path)
+            except Exception as e:
+                logger.error(f"locate playbutton error for {ref_path}: {e}")
+                continue
+
             if location is not None:
                 return pyautogui.center(location)
         return None
@@ -79,9 +98,9 @@ def open_application(app_command: str):
         pyautogui.write(app_command)
         pyautogui.press('enter')
         print(f"Opening: {app_command}")
-        log(f"Opening: {app_command}")
+        logger.info(f"Opening: {app_command}")
     except Exception as e:
-        log(f"Error opening {app_command}: {e}")
+        logger.error(f"Error opening {app_command}: {e}")
         print("Error, check logs")
 
 def close_application(app_name: str):
@@ -89,9 +108,9 @@ def close_application(app_name: str):
     try:
         os.system(f"taskkill /f /im {app_name}.exe")
         print(f"Closing {app_name}")
-        log(f"Closing {app_name}")
+        logger.info(f"Closing {app_name}")
     except Exception as e:
-        log(f"Error closing {app_name}: {e}")
+        logger.error(f"Error closing {app_name}: {e}")
         print("Error, check logs")
 
 def web_search(search_term: str):
@@ -106,7 +125,7 @@ def web_search(search_term: str):
         pyautogui.press('enter')
         print(f"Searching for: {search_term}")
     except Exception as e:
-        log(f"Error performing web search: {e}")
+        logger.error(f"Error performing web search: {e}")
         print("Error, check logs")
 
 def volume_control(action: str):
@@ -151,7 +170,7 @@ def volume_control(action: str):
             print("Volume command not recognized. Use: up, down, mute, unmute, or volume [0-100]")
 
     except Exception as e:
-        log(f"Error controlling volume: {e}")
+        logger.error(f"Error controlling volume: {e}")
         print("Error, check logs")
 
 def take_screenshot(filename: str = ""):
@@ -162,9 +181,9 @@ def take_screenshot(filename: str = ""):
         screenshot = pyautogui.screenshot()
         screenshot.save(filename)
         print(f"Screenshot saved as {filename}")
-        log(f"Screenshot saved as {filename}")
+        logger.info(f"Screenshot saved as {filename}")
     except Exception as e:
-        log(f"Error taking screenshot: {e}")
+        logger.error(f"Error taking screenshot: {e}")
         print("Error, check logs")
 
 def powershell(action: str):
@@ -173,18 +192,18 @@ def powershell(action: str):
         if "now" in action.lower():
             os.system(action)
             print(f"Executing: {action}")
-            log(f"Executing via powershell: {action}")
+            logger.info(f"Executing via powershell: {action}")
         else:
             print(f"'{action}' not possible")
-            log(f"'{action}' command not recognized")
+            logger.warning(f"'{action}' command not recognized")
     except Exception as e:
-        log(f"Error executing command: {e}")
+        logger.error(f"Error executing command: {e}")
         print("Error, check logs")
 
 def open_file(filename: str):
     """Search for and open a file"""
     try:
-        log(f"Searching for file: {filename}")
+        logger.info(f"Searching for file: {filename}")
         
         # Common directories to search
         search_directories = [
@@ -224,19 +243,19 @@ def open_file(filename: str):
         if found_files:
             # Take the first (most relevant) match
             file_path = found_files[0]
-            log(f"Found file: {file_path}")
+            logger.info(f"Found file: {file_path}")
             
             os.startfile(file_path)
             
             print(f"Opened file: {os.path.basename(file_path)}")
-            log(f"Opened file: {os.path.basename(file_path)}")
+            logger.info(f"Opened file: {os.path.basename(file_path)}")
         else:
             print(f"File '{filename}' not found in common directories")
             print("Try being more specific with the filename")
-            log("File not found")
+            logger.warning("File not found")
             
     except Exception as e:
-        log(f"Error opening file: {e}")
+        logger.error(f"Error opening file: {e}")
         print("Error, check logs")
 
 def spotify(playlist: str):
@@ -245,25 +264,36 @@ def spotify(playlist: str):
         # Always use search for any artist/playlist
         search_url = f"https://open.spotify.com/search/{playlist.replace(' ', '%20')}"
         print(f"Searching Spotify for: {playlist}")
-        log(f"Searching Spotify for: {playlist}")
+        logger.info(f"Searching Spotify for: {playlist}")
         Website(search_url)
-        time.sleep(7)
-        
-        # For search results, click twice - first to select, then to play
-        location = locate("artistcard")
-        if location != None:
+
+        # Wait for and click the first result (artist card)
+        start_time = time.time()
+        location = None
+        while location is None and time.time() - start_time < 15:
+            location = locate("artistcard")
+            time.sleep(0.5)
+        if location is not None:
             click(location)
+            logger.debug("First click - selecting search result")
         else:
-            log("Artist card not found on screen")
-        log("First click - selecting search result")
-        time.sleep(2)
-        location = locate("playbutton")
-        if location != None:
+            logger.warning("Artist card not found on screen within timeout")
+            return
+
+        time.sleep(1)
+
+        # Wait for and click the play button
+        start_time = time.time()
+        location = None
+        while location is None and time.time() - start_time < 20:
+            location = locate("playbutton")
+            time.sleep(0.5)
+        if location is not None:
             click(location)
+            logger.debug("Second click - playing music")
         else:
-            log("Play button not found on screen")
-        log("Second click - playing music")
+            logger.warning("Play button not found on screen within timeout")
         
     except Exception as e:
-        log(f"Error in Spotify function: {e}")
+        logger.error(f"Error in Spotify function: {e}")
         print("Error, check logs for more info")

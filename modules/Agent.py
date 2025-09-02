@@ -3,15 +3,17 @@ import speech_recognition as sr
 import json
 import time
 import os
-from logger import log
+from logger import logger
 from modules.tools import *
 import re
 
 class Agent:
-    def __init__(self, local=False, openrouter_api=None, input_method="voice"):
+    def __init__(self, local=False, openrouter_api=None, input_method="voice", local_model_name="gemma3:latest", cloud_model_name="mistralai/mixtral-8x7b-instruct", http_referer="https://nesarpy.github.io/", x_title="AI Computer Agent"):
         self.local = local
         self.openrouter_api = openrouter_api
         self.input_method = input_method
+        self.local_model_name = local_model_name
+        self.cloud_model_name = cloud_model_name
         self.recognizer = sr.Recognizer()
         self.microphone = sr.Microphone()
         if self.local:
@@ -22,8 +24,8 @@ class Agent:
             self.headers = {
                 "Authorization": f"Bearer {self.openrouter_api}",
                 "Content-Type": "application/json",
-                "HTTP-Referer": "https://nesarpy.github.io/",
-                "X-Title": "AI Computer Agent"
+                "HTTP-Referer": http_referer,
+                "X-Title": x_title
             }
         
         # Command mappings - these will call utility functions from utils module
@@ -81,12 +83,12 @@ class Agent:
             text = input("Type your command: ").strip()
             if text:
                 print(f"You typed: {text}")
-                log(f"You typed: {text}")
+                logger.info(f"You typed: {text}")
             return text
         except KeyboardInterrupt:
             return ""
         except Exception as e:
-            log(f"Error getting text input: {e}")
+            logger.error(f"Error getting text input: {e}")
             return ""
     
     def listen_for_voice(self) -> str:
@@ -98,7 +100,7 @@ class Agent:
                 
             text = self.recognizer.recognize_google(audio)
             print(f"You said: {text}")
-            log(f"You said: {text}")
+            logger.info(f"You said: {text}")
             return text
             
         except sr.UnknownValueError:
@@ -106,7 +108,7 @@ class Agent:
             return ""
         except sr.RequestError as e:
             print(f"Could not request results; {e}")
-            log(f"Could not request results; {e}")
+            logger.error(f"Could not request results; {e}")
             return ""
     
     def send_to_ai(self, command: str) -> dict:
@@ -117,12 +119,12 @@ class Agent:
                 system_prompt = f.read().strip()
         except FileNotFoundError:
             print("systemprompt.txt not found")
-            log("systemprompt.txt not found")
+            logger.warning("systemprompt.txt not found")
 
         if self.local:
-            model = "gemma3:latest"
+            model = self.local_model_name
         else:
-            model = "mistralai/mixtral-8x7b-instruct"
+            model = self.cloud_model_name
         
         data = {
             "model": model,
@@ -160,17 +162,17 @@ class Agent:
             # Parse JSON response
             try:
                 extracted_content = self.extract_json(content)
-                log(f"Extracted content: {extracted_content}")
+                logger.debug(f"Extracted content: {extracted_content}")
                 parsed_response = json.loads(extracted_content)
                 return parsed_response
             except json.JSONDecodeError as e:
-                log(f"Invalid JSON response from AI: {content}")
-                log(f"Extracted content: {extracted_content}")
-                log(f"JSON decode error: {e}")
+                logger.error(f"Invalid JSON response from AI: {content}")
+                logger.debug(f"Extracted content: {extracted_content}")
+                logger.exception(f"JSON decode error: {e}")
                 return {"command": "Error", "parameters": "Invalid response format"}
 
         except requests.RequestException as e:
-            log(f"API request failed: {e}")
+            logger.error(f"API request failed: {e}")
             return {"command": "Error", "parameters": "API request failed"}
     
     def execute_command(self, command_data: dict):
@@ -178,7 +180,7 @@ class Agent:
         command = command_data.get("command", "").lower()
         parameters = command_data.get("parameters", "")
         
-        log(f"Executing: {command} with parameters: {parameters}")
+        logger.info(f"Executing: {command} with parameters: {parameters}")
         
         # Find and execute the appropriate handler
         for cmd_key, handler in self.command_handlers.items():
@@ -187,7 +189,7 @@ class Agent:
                 return
         
         print(f"Unknown command: {command}")
-        log(f"Unknown command: {command}")
+        logger.warning(f"Unknown command: {command}")
     
 
     def run(self):
@@ -199,8 +201,8 @@ class Agent:
             print("AI Text Control Agent Started!")
             print("Type 'exit' to quit")
         
-        log("="*50)
-        log(f"Agent started with {self.input_method} input method")
+        logger.info("="*50)
+        logger.info(f"Agent started with {self.input_method} input method")
         print("-"*50)
         
         while True:
@@ -216,8 +218,8 @@ class Agent:
             # Check for exit command
             if "exit" in input_text.lower() or "quit" in input_text.lower():
                 print("Goodbye!")
-                log("Exited")
-                log("="*50)
+                logger.info("Exited")
+                logger.info("="*50)
                 break
             
             # Send to AI for processing
