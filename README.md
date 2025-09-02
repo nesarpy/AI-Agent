@@ -38,18 +38,8 @@ A voice-controlled AI assistant that uses natural language to control your compu
 - **tesseract_path_env**: Env var name for Tesseract path (default `TESSERACT_PATH`).
 - **tesseract_path_default**: Fallback path used if the env var is not set.
 
-### Environment variables
-
-- Set your OpenRouter API key, for example on Windows PowerShell:
-  ```powershell
-  setx OPENROUTER_API_KEY "your_api_key_here"
-  ```
-- Optionally set a custom Tesseract path:
-  ```powershell
-  setx TESSERACT_PATH "C:\\Program Files\\Tesseract-OCR\\tesseract.exe"
-  ```
-
 ### Notes
 
 - On startup, the app reads `config.json`. If missing, it uses safe defaults.
 - `modules/tools.py` uses `TESSERACT_PATH` when available; otherwise it falls back to a standard install path.
+- Save the environmental variables to a `.env` file with the respective names.
