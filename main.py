@@ -38,10 +38,6 @@ def main():
     http_referer = config.get("http_referer", "https://nesarpy.github.io/")
     x_title = config.get("x_title", "AI Computer Agent")
 
-    # Allow API key env var name from config
-    api_env_name = config.get("openrouter_api_key_env", "OPENROUTER_API_KEY")
-    openrouter_api_key = os.getenv(api_env_name)
-
     # Configure Tesseract path via environment for tools.py
     tess_env_name = config.get("tesseract_path_env", "TESSERACT_PATH")
     tess_default = config.get("tesseract_path_default", r"C:\\Program Files\\Tesseract-OCR\\tesseract.exe")
@@ -61,7 +57,7 @@ def main():
 
     agent = Agent(
         local=use_local,
-        openrouter_api=openrouter_api_key,
+        openrouter_api=OPENROUTER_API,
         input_method=input_method,
         local_model_name=local_model_name,
         cloud_model_name=cloud_model_name,

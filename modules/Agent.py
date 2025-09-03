@@ -28,17 +28,13 @@ class Agent:
                 "X-Title": x_title
             }
         
-        # Command mappings - these will call utility functions from utils module
+        # Command mappings - simplified set for workflow execution
         self.command_handlers = {
-            "Spotify": spotify,
-            "Open": open_application,
-            "Close": close_application,
-            "Search": web_search,
             "Volume": volume_control,
-            "Screenshot": take_screenshot,
-            "Website": Website,
-            "PowerShell": powershell,
-            "File": open_file
+            "Type": type_text,
+            "Shortcut": shortcut,
+            "Play": play,
+            "Website": Website
         }
     
     def extract_json(self, text):
@@ -176,20 +172,44 @@ class Agent:
             return {"command": "Error", "parameters": "API request failed"}
     
     def execute_command(self, command_data: dict):
-        """Execute the parsed command"""
-        command = command_data.get("command", "").lower()
+        """Execute a single command or a workflow with multiple steps."""
+        # Prefer workflow array if present
+        workflow = command_data.get("workflow")
+        if isinstance(workflow, list) and len(workflow) > 0:
+            for idx, step in enumerate(workflow):
+                try:
+                    command = (step.get("command") or "").strip()
+                    parameters = step.get("parameters", "")
+                    delay_secs = step.get("delay")
+                    logger.info(f"Step {idx+1}/{len(workflow)}: {command} -> {parameters}")
+                    handler = self.command_handlers.get(command)
+                    if handler:
+                        handler(parameters)
+                    else:
+                        logger.warning(f"Unknown command in workflow: {command}")
+                except Exception as e:
+                    logger.error(f"Error executing step {idx+1}: {e}")
+                # Per-step delay: use provided delay if present, otherwise default to 10s
+                try:
+                    pause = float(delay_secs) if delay_secs is not None else 10.0
+                except Exception:
+                    pause = 10.0
+                time.sleep(pause)
+            return
+
+        # Fallback: single command structure { command, parameters }
+        command = (command_data.get("command") or "").strip()
         parameters = command_data.get("parameters", "")
-        
-        logger.info(f"Executing: {command} with parameters: {parameters}")
-        
-        # Find and execute the appropriate handler
-        for cmd_key, handler in self.command_handlers.items():
-            if command.lower() == cmd_key.lower():
+        logger.info(f"Executing single command: {command} -> {parameters}")
+        handler = self.command_handlers.get(command)
+        if handler:
+            try:
                 handler(parameters)
-                return
-        
-        print(f"Unknown command: {command}")
-        logger.warning(f"Unknown command: {command}")
+            except Exception as e:
+                logger.error(f"Error executing command '{command}': {e}")
+        else:
+            print(f"Unknown command: {command}")
+            logger.warning(f"Unknown command: {command}")
     
 
     def run(self):
