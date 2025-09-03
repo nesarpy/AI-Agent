@@ -7,10 +7,8 @@ A voice-controlled AI assistant that uses natural language to control your compu
 * Voice recognition with microphone input
 * AI processing via OpenRouter with JSON responses
 * Control applications, websites, and system functions
-* Spotify integration for music and playlists
+* Spotify integration for music
 * Web search and navigation
-* Screenshots and volume control
-* Todo list access via Google Calendar
 
 ## Example Commands
 
