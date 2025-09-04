@@ -8,7 +8,7 @@ from modules.tools import *
 import re
 
 class Agent:
-    def __init__(self, local=False, openrouter_api=None, input_method="voice", local_model_name="gemma3:latest", cloud_model_name="mistralai/mixtral-8x7b-instruct", http_referer="https://nesarpy.github.io/", x_title="AI Computer Agent"):
+    def __init__(self, local=False, openrouter_api=None, input_method="voice", local_model_name="gemma3:latest", cloud_model_name="mistralai/mixtral-8x7b-instruct", http_referer="https://nesarpy.github.io/"):
         self.local = local
         self.openrouter_api = openrouter_api
         self.input_method = input_method
@@ -25,7 +25,7 @@ class Agent:
                 "Authorization": f"Bearer {self.openrouter_api}",
                 "Content-Type": "application/json",
                 "HTTP-Referer": http_referer,
-                "X-Title": x_title
+                "X-Title": "AI Computer Agent"
             }
         
         # Command mappings - simplified set for workflow execution

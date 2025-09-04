@@ -36,13 +36,6 @@ def main():
     local_model_name = config.get("local_model_name", "gemma3:latest")
     cloud_model_name = config.get("cloud_model_name", "mistralai/mixtral-8x7b-instruct")
     http_referer = config.get("http_referer", "https://nesarpy.github.io/")
-    x_title = config.get("x_title", "AI Computer Agent")
-
-    # Configure Tesseract path via environment for tools.py
-    tess_env_name = config.get("tesseract_path_env", "TESSERACT_PATH")
-    tess_default = config.get("tesseract_path_default", r"C:\\Program Files\\Tesseract-OCR\\tesseract.exe")
-    if not os.getenv(tess_env_name):
-        os.environ[tess_env_name] = tess_default
 
     # Announce mode
     if use_local:
@@ -61,8 +54,7 @@ def main():
         input_method=input_method,
         local_model_name=local_model_name,
         cloud_model_name=cloud_model_name,
-        http_referer=http_referer,
-        x_title=x_title
+        http_referer=http_referer
     )
     agent.run()
 

@@ -1,0 +1,7 @@
+{
+  "use_local_model": false,
+  "local_model_name": "gemma3:latest",
+  "cloud_model_name": "mistralai/mixtral-8x7b-instruct",
+  "input_method": "text",
+  "http_referer": "https://nesarpy.github.io/"
+}

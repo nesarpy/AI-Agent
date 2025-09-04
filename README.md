@@ -22,8 +22,7 @@ A voice-controlled AI assistant that uses natural language to control your compu
 
 ### Setup
 
-- Copy `config.json.example` to `config.json` at the project root.
-- Adjust values as needed. Do not commit `config.json` (keep only the example in Git).
+- Configure the program via `config.json` at the project root.
 
 ### Fields
 
@@ -32,9 +31,6 @@ A voice-controlled AI assistant that uses natural language to control your compu
 - **cloud_model_name**: OpenRouter model identifier (e.g., `mistralai/mixtral-8x7b-instruct`).
 - **input_method**: `voice` or `text`.
 - **openrouter_api_key_env**: Name of the environment variable holding your OpenRouter API key (default `OPENROUTER_API_KEY`).
-- **http_referer** and **x_title**: Metadata headers sent to OpenRouter.
-- **tesseract_path_env**: Env var name for Tesseract path (default `TESSERACT_PATH`).
-- **tesseract_path_default**: Fallback path used if the env var is not set.
 
 ### Notes
 

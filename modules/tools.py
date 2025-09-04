@@ -16,12 +16,7 @@ devices = AudioUtilities.GetSpeakers()
 interface = devices.Activate(IAudioEndpointVolume._iid_, CLSCTX_ALL, None)
 volume = cast(interface, POINTER(IAudioEndpointVolume))
 
-"""Configure Tesseract path from environment, with a sensible default"""
-tesseract_env_var = os.getenv("TESSERACT_PATH")
-if tesseract_env_var and os.path.exists(tesseract_env_var):
-    pytesseract.pytesseract.tesseract_cmd = tesseract_env_var
-else:
-    pytesseract.pytesseract.tesseract_cmd = r"C:\\Program Files\\Tesseract-OCR\\tesseract.exe"
+pytesseract.pytesseract.tesseract_cmd = r"C:\\Program Files\\Tesseract-OCR\\tesseract.exe"
 
 def click(location):
     """Move mouse to location and click."""
