@@ -30,13 +30,16 @@ Workflow rules:
 - Always use the Brave browser for any web task. Open it via Shortcut: "win" → Type: "brave" → Shortcut: "enter".
 - For music, always use Spotify Web in Brave (never the desktop app).
 - Each workflow step must include a numeric "delay" value in seconds. The program will wait approximately that long after executing the step before moving on.
+- When waiting for an application to open the delay for that step should never be below 2 seconds. Always return a delay value that is safe and has headroom for anomalies.
 - When opening a website, you must only use the "Website" command.
 - Never use "ctrl+t" or "Type" to open a website.
 - "Website" always opens a new tab automatically.
 - Any workflow that contains both "Website" and "ctrl+t" or "Type" for the same action is invalid.
+- To execute any commands on the command line, always use windows cmd, use valid commands only.
+- If asked to close a particular application, always use the taskkill command via cmd with the correct format.
 
 Command rules:
-- Volume → "up", "down", "mute", or "volume N" (0–100).
+- Volume → value between 0-100
 - Type → text to type exactly as a keyboard would.
 - Play → "spotify" only; it will click the artist card then the play button in Spotify Web.
 - Shortcut → valid shortcuts like "win", "enter", "win+r", "ctrl+shift+esc", "alt+f4".

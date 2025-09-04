@@ -67,45 +67,21 @@ def locate(component: str):
         logger.error(f"Error in locate('{component}'): {e}")
         return None
 
-def volume_control(action: str):
-    """Control system volume using pycaw."""
+def volume_control(target: int):
+    """Set system volume to a value between 0 and 100 using pycaw."""
     try:
-        action_lower = action.lower()
+        if not isinstance(target, (int, float)):
+            print("Volume must be a number between 0 and 100")
+            return
 
-        if "up" in action_lower:
-            current = volume.GetMasterVolumeLevelScalar()
-            new_level = min(current + 0.1, 1.0)
-            volume.SetMasterVolumeLevelScalar(new_level, None)
-            print(f"Volume increased to {int(new_level*100)}%")
-
-        elif "down" in action_lower:
-            current = volume.GetMasterVolumeLevelScalar()
-            new_level = max(current - 0.1, 0.0)
-            volume.SetMasterVolumeLevelScalar(new_level, None)
-            print(f"Volume decreased to {int(new_level*100)}%")
-
-        elif "mute" in action_lower:
-            volume.SetMute(1, None)
-            print("Volume muted")
-
-        elif "unmute" in action_lower:
-            volume.SetMute(0, None)
-            print("Volume unmuted")
-
-        elif "volume" in action_lower:
-            numbers = re.findall(r"\d+", action)
-            if numbers:
-                target_volume = int(numbers[0])
-                if 0 <= target_volume <= 100:
-                    volume.SetMasterVolumeLevelScalar(target_volume / 100, None)
-                    print(f"Volume set to {target_volume}%")
-                else:
-                    print("Volume must be between 0 and 100")
-            else:
-                print("Please specify a volume level (0-100)")
-
+        if 0 <= target <= 100:
+            volume.SetMasterVolumeLevelScalar(target / 100, None)
+            print(f"Volume set to {target}%")
         else:
-            print("Volume command not recognized. Use: up, down, mute, unmute, or volume [0-100]")
+            print("Volume must be between 0 and 100")
+    except Exception as e:
+        logger.error(f"Error controlling volume: {e}")
+        print("Error, check logs")
 
     except Exception as e:
         logger.error(f"Error controlling volume: {e}")
