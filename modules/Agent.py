@@ -157,12 +157,14 @@ class Agent:
 
             # Parse JSON response
             try:
+                logger.debug(f"Raw response: {content}")
                 extracted_content = self.extract_json(content)
                 logger.debug(f"Extracted content: {extracted_content}")
                 parsed_response = json.loads(extracted_content)
                 return parsed_response
             except json.JSONDecodeError as e:
                 logger.error(f"Invalid JSON response from AI: {content}")
+                logger.debug(f"Raw response: {content}")
                 logger.debug(f"Extracted content: {extracted_content}")
                 logger.exception(f"JSON decode error: {e}")
                 return {"command": "Error", "parameters": "Invalid response format"}

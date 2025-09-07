@@ -139,7 +139,6 @@ def play(app: str):
             click(location_point)
         else:
             logger.warning("Artist card not found on screen within timeout")
-            return
 
         time.sleep(1)
 
@@ -152,5 +151,6 @@ def play(app: str):
             click(location_point)
         else:
             logger.warning("Play button not found on screen within timeout")
+            return
     except Exception as e:
         logger.error(f"Error in Spotify play function: {e}")
