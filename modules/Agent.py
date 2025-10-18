@@ -5,6 +5,7 @@ import time
 import os
 from logger import logger
 from modules.tools import *
+from modules.memory import Memory
 import re
 
 class Agent:
@@ -16,6 +17,7 @@ class Agent:
         self.cloud_model_name = cloud_model_name
         self.recognizer = sr.Recognizer()
         self.microphone = sr.Microphone()
+        self.memory = Memory()  # Initialize session memory
         if self.local:
             self.headers = {
                 "Content-Type": "application/json"
@@ -110,6 +112,9 @@ class Agent:
     def send_to_ai(self, command: str) -> dict:
         """Send command to AI and get structured response"""
         try:
+            # Add user message to memory
+            self.memory.add_user_message(command)
+            
             # Read system prompt from file
             with open('systemprompt.txt', 'r', encoding='utf-8') as f:
                 system_prompt = f.read().strip()
@@ -122,12 +127,16 @@ class Agent:
         else:
             model = self.cloud_model_name
         
+        # Build messages with memory context
+        messages = [
+            {"role": "system", "content": system_prompt + "\n\n## Current Session State\n" + self.memory.get_state_summary()}
+        ]
+        messages.extend(self.memory.get_context_messages())
+        messages.append({"role": "user", "content": f"User command: {command}"})
+        
         data = {
             "model": model,
-            "messages": [
-            {"role": "system", "content": system_prompt},
-            {"role": "user", "content": f"User command: {command}"}
-            ]
+            "messages": messages
         }
 
         try:
@@ -249,5 +258,8 @@ class Agent:
             
             # Execute the command
             self.execute_command(command_data)
+            
+            # Add response to memory after execution
+            self.memory.add_assistant_response(command_data)
             
             print("-" * 50)
